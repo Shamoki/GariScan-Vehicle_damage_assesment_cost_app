@@ -1,0 +1,24 @@
+# Node modules and sensitive files
+backend/node_modules/
+backend/.env
+backend/package-lock.json
+
+# Flutter build and IDE files
+frontend/.dart_tool/
+frontend/.idea/
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/ios/Pods/
+frontend/macos/Flutter/ephemeral/
+frontend/linux/build/
+frontend/windows/build/
+frontend/build/
+frontend/.flutter-plugins/
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+
+# Visual Studio files
+.vs/
+
+# Other lock and temporary files
+package-lock.json
