@@ -5,7 +5,7 @@ const ImageSchema = new mongoose.Schema({
   filename: { type: String, required: true },
   contentType: { type: String, required: true },
   imageBase64: { type: String, required: true },
-  uploadedAt: { type: Date, default: Date.now },
+  uploadedAt: { type: Date, default: Date.now }, // Automatically set on creation
 });
 
 // Export the Image model

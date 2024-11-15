@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
-//import 'signup_page.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
 
-  LoginPage({super.key});
-
-  // Function to send a POST request to your backend's login API
+  // Function to send a POST request to the backend login API
   Future<void> login(BuildContext context, String email, String password) async {
-    var url = Uri.parse('http://localhost:5000/api/auth/login'); 
+    var url = Uri.parse('http://localhost:5000/api/auth/login');
+    setState(() {
+      _isLoading = true; // Show loading spinner
+    });
 
     try {
       var response = await http.post(
@@ -27,18 +36,30 @@ class LoginPage extends StatelessWidget {
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
+        var userId = responseData['userId'];
+        var token = responseData['token'];
+        
         print('Login successful');
-        print('Token: ${responseData['token']}');  // Print token for testing
+        print('User ID: $userId');
+        
+        // Store token and userId in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', userId);
+        await prefs.setString('token', token);
 
-        // Navigate to home page after successful login
-        Navigator.pushReplacementNamed(context, '/home');
+        // Navigate to home page with userId
+        Navigator.pushReplacementNamed(context, '/home', arguments: userId);
       } else {
-        print('Login failed: ${response.body}');
-        _showErrorDialog(context, 'Login failed', response.body);
+        // Display error message
+        var errorMsg = jsonDecode(response.body)['msg'] ?? 'Login failed';
+        _showErrorDialog(context, 'Login failed', errorMsg);
       }
     } catch (e) {
-      print('Error occurred: $e');
       _showErrorDialog(context, 'Login failed', 'An error occurred during login.');
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading spinner
+      });
     }
   }
 
@@ -126,23 +147,26 @@ class LoginPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(top: 3, left: 3),
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Trigger the login function
-                    login(
-                      context,
-                      emailController.text,
-                      passwordController.text,
-                    );
-                  },
+                  onPressed: _isLoading
+                      ? null // Disable button while loading
+                      : () {
+                          login(
+                            context,
+                            emailController.text,
+                            passwordController.text,
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.purple,
                   ),
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(fontSize: 20),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Login",
+                          style: TextStyle(fontSize: 20),
+                        ),
                 ),
               ),
               const Center(child: Text("Or")),
@@ -168,3 +192,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+

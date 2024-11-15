@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io' if (dart.library.io) 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:typed_data';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
           const Positioned(
             top: 20,
             right: 16,
-            child: ProfilePopupMenu(), // Positioned Profile Popup
+            child: ProfilePopupMenu(),
           ),
         ],
       ),
@@ -77,21 +77,19 @@ class UploadButtonPage extends StatefulWidget {
 
 class UploadButtonPageState extends State<UploadButtonPage>
     with SingleTickerProviderStateMixin {
-  final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
+  Uint8List? _selectedFileBytes;
+  String? _selectedFilePath;
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-
-    // animation controlller
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
-    // scaling button
     _animation = Tween<double>(begin: 1.0, end: 1.5).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
@@ -99,76 +97,95 @@ class UploadButtonPageState extends State<UploadButtonPage>
 
   @override
   void dispose() {
-    _controller.dispose(); // Dispose of the animation controller.
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final XFile? pickedFile = await _picker.pickImage(source: source);
+  Future<void> _pickFromGallery() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'bmp', 'gif'],
+      );
 
-    if (pickedFile != null) {
-      setState(() {
-        _isUploading = true;
-        _controller.stop(); // Stop animation during upload.
-      });
-
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        await _uploadImageFromBytes(bytes, pickedFile.name);
+      if (result != null && result.files.single.bytes != null) {
+        setState(() {
+          _selectedFileBytes = result.files.single.bytes;
+          _selectedFilePath = result.files.single.name; // Use file name
+        });
+        await _uploadImage();
       } else {
-        final file = File(pickedFile.path);
-        await _uploadImageFromFile(file);
+        _showErrorSnackBar("No file selected or invalid format.");
+      }
+    } catch (e) {
+      _showErrorSnackBar("Error selecting file: $e");
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    if (_selectedFileBytes == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
+      String? token = prefs.getString('token');
+
+      if (userId == null || token == null) {
+        _showErrorSnackBar('You must log in first.');
+        return;
       }
 
+      var url = Uri.parse('http://localhost:5000/api/upload/');
+      var request = http.MultipartRequest('POST', url);
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['userId'] = userId;
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        _selectedFileBytes!,
+        filename: _selectedFilePath ?? 'upload.png',
+      ));
+
+      var response = await request.send();
+
+      if (response.statusCode == 201) {
+        _showUploadResult(true);
+      } else {
+        var errorMsg = await response.stream.bytesToString();
+        _showErrorSnackBar("Upload failed: $errorMsg");
+      }
+    } catch (e) {
+      _showErrorSnackBar("Upload error: $e");
+    } finally {
       setState(() {
         _isUploading = false;
-        _controller.repeat(reverse: true); // Restart animation.
+        _selectedFileBytes = null;
       });
-    }
-  }
-
-  Future<void> _uploadImageFromBytes(Uint8List bytes, String filename) async {
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://localhost:5000/api/upload'),
-      );
-      request.files
-          .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-      var response = await request.send();
-      _showUploadResult(response.statusCode == 200);
-    } catch (e) {
-      _showErrorSnackBar('Network error: $e');
-    }
-  }
-
-  Future<void> _uploadImageFromFile(File file) async {
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://localhost:5000/api/upload'),
-      );
-      request.files.add(await http.MultipartFile.fromPath('file', file.path));
-      var response = await request.send();
-      _showUploadResult(response.statusCode == 200);
-    } catch (e) {
-      _showErrorSnackBar('Network error: $e');
     }
   }
 
   void _showUploadResult(bool success) {
-    final message = success ? 'Upload Successful' : 'Upload Failed';
-    // Use the nearest valid context from your widget tree
+    final message = success ? "Upload Successful" : "Upload Failed";
     showDialog(
-      context: context, // Ensure this is valid at the time of call
+      context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(message),
-          content: const Text('Your image is being processed.'),
+          content: const Text("Your image is being processed."),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                if (success) {
+                  Navigator.pushReplacementNamed(context, '/waiting_page');
+                }
+              },
+              child: const Text("OK"),
             ),
           ],
         );
@@ -183,55 +200,54 @@ class UploadButtonPageState extends State<UploadButtonPage>
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Center(
       child: Stack(
         alignment: Alignment.center,
         children: [
           Column(
-            mainAxisSize: MainAxisSize
-                .min, // Ensure the column only takes the needed space
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Animated Button
               AnimatedBuilder(
                 animation: _animation,
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: _animation.value, // Apply animated scaling.
-                    child: child,
+                    scale: _animation.value,
+                    child: GestureDetector(
+                      onTap: _pickFromGallery,
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.purple.withOpacity(0.8),
+                              Colors.purple.withOpacity(0.8)
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   );
                 },
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.purple.withOpacity(0.8),
-                        Colors.purple.withOpacity(0.8)
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    size: 60,
-                    color: Colors.white,
-                  ),
-                ),
               ),
-              const SizedBox(height: 50), //space
+              const SizedBox(height: 50),
               const Text(
                 'Tap to Analyse',
                 style: TextStyle(
@@ -242,6 +258,7 @@ class UploadButtonPageState extends State<UploadButtonPage>
               ),
             ],
           ),
+          if (_isUploading) const CircularProgressIndicator(),
         ],
       ),
     );
@@ -272,26 +289,23 @@ class ProfilePopupMenu extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: [
-              Colors.purple,
-              Color.fromARGB(255, 255, 68, 239)
-            ], // Gradient colors
+            colors: [Colors.purple, Color.fromARGB(255, 255, 68, 239)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1), // Subtle shadow
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(2, 4),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(8.0), // Padding around the icon
+        padding: const EdgeInsets.all(8.0),
         child: const Icon(
           Icons.person,
-          color: Colors.white, // White icon for contrast
-          size: 30.0, // Slightly smaller size for minimal feel
+          color: Colors.white,
+          size: 30.0,
         ),
       ),
       onSelected: (Menu item) {

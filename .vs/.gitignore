@@ -2,6 +2,9 @@
 backend/node_modules/
 backend/.env
 backend/package-lock.json
+backend/upload.js
+
+
 
 # Flutter build and IDE files
 frontend/.dart_tool/

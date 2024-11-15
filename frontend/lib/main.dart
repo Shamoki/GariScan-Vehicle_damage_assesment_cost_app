@@ -5,6 +5,7 @@ import 'home_page.dart'; // Home page import
 import 'signup_page.dart'; // Signup page import
 import 'settings.dart'; // Settings page import
 import 'package:navigation_history_observer/navigation_history_observer.dart'; // Import NavigationHistoryObserver
+import 'waiting_page.dart';
 
 void main() {
   runApp(const MyApp()); // App entry point
@@ -73,8 +74,9 @@ class MyApp extends StatelessWidget {
         // Settings Page Route
         '/settings': (context) => const SettingsPage(),
 
-        // Optional: Add Profile Page Route if needed
-        // '/profile_page': (context) => const ProfilePage(),
+        '/profile_page': (context) => const ProfilePage(),
+
+        '/waiting_page': (context) => const WaitingPage(),
       },
     );
   }

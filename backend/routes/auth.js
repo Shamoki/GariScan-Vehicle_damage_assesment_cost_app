@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require('express'); 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');  
-const router = express.Router();
 const cors = require('cors');  // CORS middleware
+const router = express.Router();
 
-// Use CORS only for this route
+// Use CORS for all routes within this router
 router.use(cors());
 
 // POST /signup - User sign-up
@@ -50,11 +50,17 @@ router.post('/login', async (req, res) => {
     const payload = { userId: user.id };
     const token = jwt.sign(payload, process.env.SECRET_KEY || 'defaultsecret', { expiresIn: '1h' });
 
-    res.status(200).json({ token, user: { username: user.username, email: user.email } });
+    // Return userId explicitly in the response
+    res.status(200).json({
+      token,
+      userId: user.id,
+      user: { username: user.username, email: user.email }
+    });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).send('Server error');
   }
 });
 
+// Export the router with middleware
 module.exports = router;
