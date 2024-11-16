@@ -2,8 +2,13 @@
 backend/node_modules/
 backend/.env
 backend/package-lock.json
-backend/upload.js
 
+
+# Ignore server.js file
+server.js
+
+# Ignore upload.js file
+routes/upload.js
 
 
 # Flutter build and IDE files
