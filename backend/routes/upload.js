@@ -1,97 +1,64 @@
-const express = require('express');
-const multer = require('multer');
-const fs = require('fs').promises;
-const path = require('path');
-const cors = require('cors');
-const Image = require('../models/Image');
+const express = require("express");
+const multer = require("multer");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const Image = require("../models/Image");
+
 const router = express.Router();
 
-// Enable CORS for all routes
-router.use(cors({
-  origin: '*', // Allow all origins for development; restrict in production
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+// Use CORS for all routes within this router
+router.use(cors());
 
-// Ensure uploads directory exists
-const UPLOAD_DIR = path.join(__dirname, '../uploads/');
-(async () => {
+// Multer setup to handle file uploads in memory
+const storage = multer.memoryStorage(); // Store files in memory temporarily
+const upload = multer({ storage });
+
+// POST /upload - Upload an image
+router.post("/", upload.single("file"), async (req, res) => {
   try {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    console.log('Uploads directory verified.');
-  } catch (err) {
-    console.error('Error creating uploads directory:', err);
-  }
-})();
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueSuffix);
-  },
-});
-
-// Multer setup without file filtering
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
-
-// POST /api/upload
-router.post('/', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      console.error('No file uploaded');
-      return res.status(400).json({ message: 'No file uploaded.' });
-    }
-
     const { userId } = req.body;
+
     if (!userId) {
-      console.error('User ID is required but missing');
-      return res.status(400).json({ message: 'User ID is required.' });
+      return res.status(400).json({ msg: "User ID is required" });
     }
 
-    const filePath = path.join(UPLOAD_DIR, req.file.filename);
+    if (!req.file) {
+      return res.status(400).json({ msg: "No file uploaded" });
+    }
 
-    // Read file and convert to Base64
-    const fileBuffer = await fs.readFile(filePath);
-    const imageBase64 = fileBuffer.toString('base64');
-
-    // Save file information to MongoDB
+    // Save image metadata and binary data to the Images collection
     const newImage = new Image({
-      userId,
-      filename: req.file.filename,
+      filename: req.file.originalname,
       contentType: req.file.mimetype,
-      filePath: filePath,
-      imageBase64, // Include Base64 data
+      data: req.file.buffer, // Binary file data
+      userId: userId,
     });
 
     await newImage.save();
-    console.log('Image saved to MongoDB:', newImage);
 
-    // Respond to the client
-    res.status(201).json({ message: 'Image uploaded successfully!' });
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ message: 'Image upload failed.', error: error.message });
+    res.status(201).json({ msg: "Image uploaded successfully", imageId: newImage._id });
+  } catch (err) {
+    console.error("Upload error:", err.message);
+    res.status(500).send("Server error");
   }
 });
 
-// Error handling for multer and other errors
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    console.error('Multer error:', err.message);
-    return res.status(400).json({ message: err.message });
+// GET /:id - Retrieve an image by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const image = await Image.findById(req.params.id);
+
+    if (!image) {
+      return res.status(404).json({ msg: "Image not found" });
+    }
+
+    // Set headers for image response
+    res.set("Content-Type", image.contentType);
+    res.send(image.data);
+  } catch (err) {
+    console.error("Retrieval error:", err.message);
+    res.status(500).send("Server error");
   }
-  if (err) {
-    console.error('Unhandled error:', err.message);
-    return res.status(500).json({ message: err.message });
-  }
-  next();
 });
 
 module.exports = router;

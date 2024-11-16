@@ -137,7 +137,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => LoginPage()),
+                              builder: (context) => const LoginPage()),
                         );
                       },
                       child: const Text(
@@ -154,7 +154,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => LoginPage()),
+                                builder: (context) => const LoginPage()),
                           );
                         } else {
                           // Otherwise, go to the next onboarding page

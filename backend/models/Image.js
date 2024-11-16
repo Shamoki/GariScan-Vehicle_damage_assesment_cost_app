@@ -1,12 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ImageSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
   filename: { type: String, required: true },
   contentType: { type: String, required: true },
-  imageBase64: { type: String, required: true },
-  uploadedAt: { type: Date, default: Date.now }, // Automatically set on creation
+  data: { type: Buffer, required: true }, // Binary file data
+  userId: { type: String, required: true }, // User ID reference
+  uploadedAt: { type: Date, default: Date.now }, // Upload timestamp
 });
 
-// Export the Image model
-module.exports = mongoose.model('Image', ImageSchema);
+module.exports = mongoose.model("Image", ImageSchema);
