@@ -11,7 +11,7 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Settings"),
       ),
-      backgroundColor: Colors.purple,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),

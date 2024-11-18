@@ -36,6 +36,9 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     await newImage.save();
 
+    // Log a message on successful upload
+    console.log(`Image uploaded: ${newImage.filename}, Size: ${req.file.size} bytes, Uploaded by User ID: ${userId}`);
+
     res.status(201).json({ msg: "Image uploaded successfully", imageId: newImage._id });
   } catch (err) {
     console.error("Upload error:", err.message);

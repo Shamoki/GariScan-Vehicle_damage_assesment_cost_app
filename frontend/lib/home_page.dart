@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
+import 'history.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,7 +19,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     const UploadButtonPage(),
-    const Center(child: Text("History Page", style: TextStyle(fontSize: 24))),
+     HistoryPageApp(),
     const ProfilePage(),
   ];
 
@@ -40,32 +42,35 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildSalomonBottomBar(),
+      bottomNavigationBar: _buildSalomonBottomBar(context),
     );
   }
 
-  Widget _buildSalomonBottomBar() {
-    return SalomonBottomBar(
-      currentIndex: _selectedIndex,
-      onTap: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      items: [
-        SalomonBottomBarItem(
-          icon: const Icon(Icons.upload_file),
-          title: const Text("Upload"),
-          selectedColor: Colors.purple.withOpacity(0.8),
-        ),
-        SalomonBottomBarItem(
-          icon: const Icon(Icons.history),
-          title: const Text("History"),
-          selectedColor: Colors.purple.withOpacity(0.8),
-        ),
-      ],
-    );
-  }
+  Widget _buildSalomonBottomBar(BuildContext context) {
+  return SalomonBottomBar(
+    currentIndex: _selectedIndex,
+    onTap: (index) {
+      setState(() {
+        _selectedIndex = index; // Switch tabs within the same structure
+      });
+    },
+    items: [
+      SalomonBottomBarItem(
+        icon: const Icon(Icons.upload_file),
+        title: const Text("Upload"),
+        selectedColor: Colors.purple.withOpacity(0.8),
+      ),
+      SalomonBottomBarItem(
+        icon: const Icon(Icons.history),
+        title: const Text("History"),
+        selectedColor: Colors.purple.withOpacity(0.8),
+      ),
+      
+    ],
+  );
+}
+
+
 }
 
 class UploadButtonPage extends StatefulWidget {
