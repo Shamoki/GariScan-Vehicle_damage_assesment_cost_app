@@ -5,7 +5,9 @@ import 'home_page.dart'; // Home page import
 import 'signup_page.dart'; // Signup page import
 import 'settings.dart'; // Settings page import
 import 'waiting_page.dart'; // Waiting page import
-import 'history_page.dart';
+import 'history.dart';
+import 'profile.dart';
+import 'otp.dart';
 import 'package:navigation_history_observer/navigation_history_observer.dart'; // Import NavigationHistoryObserver
 
 void main() {
@@ -44,9 +46,10 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignupPage(),
         '/home': (context) => const HomePage(),
         '/settings': (context) => const SettingsPage(),
-        '/profile_page': (context) => const ProfilePage(),
+        '/profile': (context) => const Profilepic(),
         '/waiting_page': (context) =>  GariscanApp(),
-        '/history_page': (context) =>  HistoryPageApp(),
+        '/history': (context) =>  HistoryPageApp(),
+        '/otp': (context) => OTPVerificationPage(email: '',),
       },
     );
   }

@@ -5,10 +5,11 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 import 'history.dart';
+import 'profile.dart';
 
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const UploadButtonPage(),
      HistoryPageApp(),
-    const ProfilePage(),
+     Profilepic(),
   ];
 
   @override
@@ -74,7 +75,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 class UploadButtonPage extends StatefulWidget {
-  const UploadButtonPage({Key? key}) : super(key: key);
+  const UploadButtonPage({super.key});
 
   @override
   UploadButtonPageState createState() => UploadButtonPageState();
@@ -271,7 +272,7 @@ class UploadButtonPageState extends State<UploadButtonPage>
 }
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +286,7 @@ class ProfilePage extends StatelessWidget {
 }
 
 class ProfilePopupMenu extends StatelessWidget {
-  const ProfilePopupMenu({Key? key}) : super(key: key);
+  const ProfilePopupMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +317,7 @@ class ProfilePopupMenu extends StatelessWidget {
       onSelected: (Menu item) {
         switch (item) {
           case Menu.profile:
-            Navigator.pushReplacementNamed(context, '/profile_page');
+            Navigator.pushReplacementNamed(context, '/profile');
             break;
           case Menu.settings:
             Navigator.pushReplacementNamed(context, '/settings');

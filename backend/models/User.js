@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const argon2 = require('argon2');
 
-// User schema definition
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   password: { type: String, required: true },
+  isEmailVerified: { type: Boolean, default: false }, // For email verification
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -20,14 +20,9 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-// Verify password
-UserSchema.methods.verifyPassword = async function (inputPassword) {
-  try {
-    return await argon2.verify(this.password, inputPassword);
-  } catch (err) {
-    console.error('Password verification error:', err);
-    return false;
-  }
+// Verify password during login
+UserSchema.methods.verifyPassword = async function (password) {
+  return argon2.verify(this.password, password);
 };
 
 module.exports = mongoose.model('User', UserSchema);

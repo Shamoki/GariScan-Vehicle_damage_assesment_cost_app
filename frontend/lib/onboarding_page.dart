@@ -20,7 +20,7 @@ class OnboardingPageModel {
 class OnboardingPage extends StatefulWidget {
   final List<OnboardingPageModel> pages;
 
-  const OnboardingPage({Key? key, required this.pages}) : super(key: key);
+  const OnboardingPage({super.key, required this.pages});
 
   @override
   _OnboardingPageState createState() => _OnboardingPageState();

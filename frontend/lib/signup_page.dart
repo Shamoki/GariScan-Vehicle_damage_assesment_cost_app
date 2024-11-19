@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'otp.dart'; // Import OTP Verification Page
 
 class SignupPage extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
@@ -11,37 +12,49 @@ class SignupPage extends StatelessWidget {
 
   SignupPage({super.key});
 
-  Future<void> signUp(BuildContext context, String username, String email,
-      String password) async {
+  Future<void> signUp(
+    BuildContext context,
+    String username,
+    String email,
+    String password,
+  ) async {
     var url = Uri.parse('http://localhost:5000/api/auth/signup');
 
-    var response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'username': username,
-        'email': email,
-        'password': password,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      print('Sign-up successful');
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Sign-up successful! Redirecting to login...')),
+    try {
+      var response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'password': password,
+        }),
       );
-      // Redirect to the login page after a delay
-      Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacementNamed(context, '/login');
-      });
-    } else {
-      // Show an error message
+
+      if (response.statusCode == 201) {
+        // Redirect to OTP Verification Page on success
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signup successful! Check your email for the OTP.')),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OTPVerificationPage(email: email),
+          ),
+        );
+      } else {
+        // Show error message from server
+        var errorMessage = jsonDecode(response.body)['msg'] ?? 'Signup failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $errorMessage')),
+        );
+      }
+    } catch (e) {
+      // Handle network or unexpected errors
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${response.body}')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -49,7 +62,6 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Make sure this page is wrapped with a Scaffold
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -117,7 +129,7 @@ class SignupPage extends StatelessWidget {
                       ),
                       fillColor: Colors.purple.withOpacity(0.1),
                       filled: true,
-                      prefixIcon: const Icon(Icons.password),
+                      prefixIcon: const Icon(Icons.lock),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -132,26 +144,27 @@ class SignupPage extends StatelessWidget {
                       ),
                       fillColor: Colors.purple.withOpacity(0.1),
                       filled: true,
-                      prefixIcon: const Icon(Icons.password),
+                      prefixIcon: const Icon(Icons.lock),
                     ),
                   ),
                 ],
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (passwordController.text ==
+                  if (passwordController.text !=
                       confirmPasswordController.text) {
-                    signUp(
-                      context,
-                      usernameController.text,
-                      emailController.text,
-                      passwordController.text,
-                    );
-                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Passwords do not match')),
                     );
+                    return;
                   }
+
+                  signUp(
+                    context,
+                    usernameController.text,
+                    emailController.text,
+                    passwordController.text,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   shape: const StadiumBorder(),

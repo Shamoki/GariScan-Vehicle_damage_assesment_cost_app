@@ -6,6 +6,8 @@ void main() {
 }
 
 class GariscanApp extends StatelessWidget {
+  const GariscanApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,6 +18,8 @@ class GariscanApp extends StatelessWidget {
 }
 
 class GariscanWaitingPage extends StatefulWidget {
+  const GariscanWaitingPage({super.key});
+
   @override
   _GariscanWaitingPageState createState() => _GariscanWaitingPageState();
 }

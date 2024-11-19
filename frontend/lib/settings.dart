@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:navigation_history_observer/navigation_history_observer.dart'; // Import observer
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -112,8 +112,7 @@ class _CustomListTile extends StatelessWidget {
   final IconData icon;
   final Widget? trailing;
   const _CustomListTile(
-      {Key? key, required this.title, required this.icon, this.trailing})
-      : super(key: key);
+      {required this.title, required this.icon, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -130,10 +129,9 @@ class _SingleSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
   const _SingleSection({
-    Key? key,
     required this.title,
     required this.children,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -5,6 +5,8 @@ void main() {
 }
 
 class HistoryPageApp extends StatelessWidget {
+  const HistoryPageApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,6 +38,8 @@ class HistoryPage extends StatelessWidget {
       "date": "22/09/2024"
     },
   ];
+
+   HistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
