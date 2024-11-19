@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 void main() {
-  runApp(GariscanApp());
+  runApp(const GariscanApp());
 }
 
 class GariscanApp extends StatelessWidget {
@@ -12,7 +12,7 @@ class GariscanApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: GariscanWaitingPage(),
+      home: const GariscanWaitingPage(),
     );
   }
 }
@@ -31,78 +31,77 @@ class _GariscanWaitingPageState extends State<GariscanWaitingPage> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255)],
+            colors: [Colors.white, Color.fromARGB(255, 240, 240, 240)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Lottie Animation occupying half the screen
+            // Lottie Animation
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Center(
-                child: Lottie.asset(
-                  'assets/animations/inspect.json',
-                  fit: BoxFit.contain,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Lottie.asset(
+                    'assets/animations/inspect.json',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
 
-            // Safety Tips Section
-            Expanded(
-              flex: 5,
+            // Tagline Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: Column(
-                children: [
-                  const Text(
-                    "While You Wait, Here are Some Safety Tips:",
+                children: const [
+                  Text(
+                    "While You Wait for us to analyse, take note of some safety tips:",
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Safety Tips Carousel
-                  Expanded(
-                    child: PageView(
-                      controller: PageController(viewportFraction: 0.9),
-                      children: [
-                        _buildSafetyCard(
-                          icon: Icons.warning,
-                          title: "Incase of an accident.Move to Safety",
-                          description:
-                              "If possible, move to the side of the road to avoid blocking traffic.",
-                        ),
-                        _buildSafetyCard(
-                          icon: Icons.phone,
-                          title: "Call Kenya's emergency number 999",
-                          description:
-                              "Immediately call the appropriate emergency services for assistance.",
-                        ),
-                        _buildSafetyCard(
-                          icon: Icons.camera_alt,
-                          title: "Document the Scene",
-                          description:
-                              "Take photos of the damage and exchange contact information.",
-                        ),
-                        
-                      ],
-                    ),
-                  ),
-
-                  // Tagline
-                  const Text(
-                    "Safety First. Accurate Assessments Always!!",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.black54,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.purple,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 10),
+                  Text(
+                    "",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            // Safety Tips Carousel
+            Expanded(
+              flex: 5,
+              child: PageView(
+                controller: PageController(viewportFraction: 0.85),
+                children: [
+                  _buildSafetyCard(
+                    icon: Icons.warning,
+                    title: "Move to Safety",
+                    description: "If possible, move to the side of the road to avoid traffic.",
+                  ),
+                  _buildSafetyCard(
+                    icon: Icons.phone,
+                    title: "Emergency Assistance",
+                    description: "Call Kenya's emergency number 999 for help.",
+                  ),
+                  _buildSafetyCard(
+                    icon: Icons.camera_alt,
+                    title: "Document the Scene",
+                    description: "Take photos and exchange contact details.",
+                  ),
                 ],
               ),
             ),
@@ -112,34 +111,38 @@ class _GariscanWaitingPageState extends State<GariscanWaitingPage> {
     );
   }
 
-  Widget _buildSafetyCard(
-      {required IconData icon, required String title, required String description}) {
+  Widget _buildSafetyCard({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
     return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 50, color: Colors.purple),
-            const SizedBox(height: 10),
+            Icon(icon, size: 40, color: Colors.purple),
+            const SizedBox(height: 15),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               description,
-              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black54,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

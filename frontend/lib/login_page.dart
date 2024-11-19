@@ -23,6 +23,16 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      if (email.isEmpty || password.isEmpty) {
+        _showErrorDialog(context, 'Login failed', 'Email and Password are required.');
+        return;
+      }
+
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+        _showErrorDialog(context, 'Login failed', 'Please enter a valid email address.');
+        return;
+      }
+
       var response = await http.post(
         url,
         headers: {
@@ -38,14 +48,15 @@ class _LoginPageState extends State<LoginPage> {
         var responseData = jsonDecode(response.body);
         var userId = responseData['userId'];
         var token = responseData['token'];
-        
-        print('Login successful');
-        print('User ID: $userId');
-        
+
         // Store token and userId in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', userId);
         await prefs.setString('token', token);
+
+        // Clear input fields
+        emailController.clear();
+        passwordController.clear();
 
         // Navigate to home page with userId
         Navigator.pushReplacementNamed(context, '/home', arguments: userId);
@@ -55,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
         _showErrorDialog(context, 'Login failed', errorMsg);
       }
     } catch (e) {
-      _showErrorDialog(context, 'Login failed', 'An error occurred during login.');
+      _showErrorDialog(context, 'Login failed', 'An error occurred during login. $e');
     } finally {
       setState(() {
         _isLoading = false; // Hide loading spinner
@@ -102,6 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
+                      color: Colors.purple,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -152,8 +164,8 @@ class _LoginPageState extends State<LoginPage> {
                       : () {
                           login(
                             context,
-                            emailController.text,
-                            passwordController.text,
+                            emailController.text.trim(),
+                            passwordController.text.trim(),
                           );
                         },
                   style: ElevatedButton.styleFrom(
@@ -165,7 +177,8 @@ class _LoginPageState extends State<LoginPage> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "Login",
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(fontSize: 18, color:Colors.white),
+                          
                         ),
                 ),
               ),
@@ -192,4 +205,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-

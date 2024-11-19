@@ -21,11 +21,10 @@ class SignupPage extends StatelessWidget {
     var url = Uri.parse('http://localhost:5000/api/auth/signup');
 
     try {
+      // Make the POST request
       var response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
           'email': email,
@@ -33,10 +32,13 @@ class SignupPage extends StatelessWidget {
         }),
       );
 
+      // Handle responses
       if (response.statusCode == 201) {
-        // Redirect to OTP Verification Page on success
+        // Success: Notify user and navigate to OTP verification
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup successful! Check your email for the OTP.')),
+          const SnackBar(
+            content: Text('Signup successful! Check your email for the OTP.'),
+          ),
         );
         Navigator.push(
           context,
@@ -45,16 +47,16 @@ class SignupPage extends StatelessWidget {
           ),
         );
       } else {
-        // Show error message from server
+        // Display server error message
         var errorMessage = jsonDecode(response.body)['msg'] ?? 'Signup failed';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $errorMessage')),
         );
       }
     } catch (e) {
-      // Handle network or unexpected errors
+      // Handle unexpected errors
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error: Could not connect to the server. $e')),
       );
     }
   }
@@ -77,8 +79,9 @@ class SignupPage extends StatelessWidget {
                   const Text(
                     "Sign up",
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color:Colors.white
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -90,6 +93,7 @@ class SignupPage extends StatelessWidget {
               ),
               Column(
                 children: <Widget>[
+                  // Username Field
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
@@ -104,6 +108,7 @@ class SignupPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  // Email Field
                   TextField(
                     controller: emailController,
                     decoration: InputDecoration(
@@ -118,6 +123,7 @@ class SignupPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  // Password Field
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -133,6 +139,7 @@ class SignupPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  // Confirm Password Field
                   TextField(
                     controller: confirmPasswordController,
                     obscureText: true,
@@ -151,19 +158,36 @@ class SignupPage extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (passwordController.text !=
-                      confirmPasswordController.text) {
+                  // Validate all fields
+                  if (usernameController.text.isEmpty ||
+                      emailController.text.isEmpty ||
+                      passwordController.text.isEmpty ||
+                      confirmPasswordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Passwords do not match')),
+                      const SnackBar(
+                        content: Text('All fields are required.'),
+                      ),
                     );
                     return;
                   }
 
+                  // Validate passwords match
+                  if (passwordController.text !=
+                      confirmPasswordController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Passwords do not match.'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Trigger signup process
                   signUp(
                     context,
-                    usernameController.text,
-                    emailController.text,
-                    passwordController.text,
+                    usernameController.text.trim(),
+                    emailController.text.trim(),
+                    passwordController.text.trim(),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,17 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Import provider for ThemeProvider
 import 'package:navigation_history_observer/navigation_history_observer.dart'; // Import observer
+import 'theme_provider.dart'; // Import ThemeProvider
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context); // Access ThemeProvider
+    final isDarkMode = themeProvider.isDarkMode; // Check current theme mode
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
+        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.purple,
       ),
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -19,83 +25,61 @@ class SettingsPage extends StatelessWidget {
             children: [
               _SingleSection(
                 title: "General",
+                textColor: isDarkMode ? Colors.white : Colors.black,
                 children: [
-                  const _CustomListTile(
-                      title: "About Phone",
-                      icon: CupertinoIcons.device_phone_portrait),
                   _CustomListTile(
-                      title: "Dark Mode",
-                      icon: CupertinoIcons.moon,
-                      trailing:
-                          CupertinoSwitch(value: false, onChanged: (value) {})),
-                  const _CustomListTile(
-                      title: "System Apps Updater",
-                      icon: CupertinoIcons.cloud_download),
-                  const _CustomListTile(
-                      title: "Security Status",
-                      icon: CupertinoIcons.lock_shield),
-                ],
-              ),
-              _SingleSection(
-                title: "Network",
-                children: [
-                  const _CustomListTile(
-                      title: "SIM Cards and Networks",
-                      icon: Icons.sd_card_outlined),
-                  _CustomListTile(
-                    title: "Wi-Fi",
-                    icon: CupertinoIcons.wifi,
-                    trailing: CupertinoSwitch(value: true, onChanged: (val) {}),
+                    title: "About Phone",
+                    icon: CupertinoIcons.device_phone_portrait,
+                    tileColor: isDarkMode ? Colors.grey[850]! : Colors.white,
+                    textColor: isDarkMode ? Colors.white : Colors.black,
                   ),
                   _CustomListTile(
-                    title: "Bluetooth",
-                    icon: CupertinoIcons.bluetooth,
-                    trailing:
-                        CupertinoSwitch(value: false, onChanged: (val) {}),
+                    title: "Dark Mode",
+                    icon: CupertinoIcons.moon,
+                    tileColor: isDarkMode ? Colors.grey[850]! : Colors.white,
+                    textColor: isDarkMode ? Colors.white : Colors.black,
+                    trailing: CupertinoSwitch(
+                      value: isDarkMode,
+                      onChanged: (value) {
+                        themeProvider.toggleTheme(); // Toggle theme
+                      },
+                    ),
                   ),
-                  const _CustomListTile(
-                    title: "VPN",
-                    icon: CupertinoIcons.desktopcomputer,
-                  )
+                  _CustomListTile(
+                    title: "System Apps Updater",
+                    icon: CupertinoIcons.cloud_download,
+                    tileColor: isDarkMode ? Colors.grey[850]! : Colors.white,
+                    textColor: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                  _CustomListTile(
+                    title: "Security Status",
+                    icon: CupertinoIcons.lock_shield,
+                    tileColor: isDarkMode ? Colors.grey[850]! : Colors.white,
+                    textColor: isDarkMode ? Colors.white : Colors.black,
+                  ),
                 ],
               ),
-              const _SingleSection(
-                title: "Privacy and Security",
-                children: [
-                  _CustomListTile(
-                      title: "Lock Screen", icon: CupertinoIcons.lock),
-                  _CustomListTile(
-                      title: "Display", icon: CupertinoIcons.brightness),
-                  _CustomListTile(
-                      title: "Sound and Vibration",
-                      icon: CupertinoIcons.speaker_2),
-                  _CustomListTile(
-                      title: "Themes", icon: CupertinoIcons.paintbrush)
-                ],
-              ),
-
-              // New Back to Home Section
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    // Convert BuiltList to List
                     List<Route<dynamic>> history =
                         NavigationHistoryObserver().history.toList();
 
-                    // Check if Home exists in the history stack
                     bool homeExists =
                         history.any((route) => route.settings.name == '/home');
 
                     if (homeExists) {
-                      // Pop back to 'Home' if it exists in the stack
                       Navigator.of(context)
                           .popUntil((route) => route.settings.name == '/home');
                     } else {
-                      // If 'Home' isn't in the stack, push it as a new route
                       Navigator.of(context).pushNamed('/home');
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isDarkMode ? Colors.grey[900]! : Colors.purple,
+                  ),
                   child: const Text('Back to Home'),
                 ),
               ),
@@ -111,16 +95,28 @@ class _CustomListTile extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget? trailing;
-  const _CustomListTile(
-      {required this.title, required this.icon, this.trailing});
+  final Color tileColor;
+  final Color textColor;
+
+  const _CustomListTile({
+    required this.title,
+    required this.icon,
+    this.trailing,
+    required this.tileColor,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(title),
-      leading: Icon(icon),
-      trailing: trailing ?? const Icon(CupertinoIcons.forward, size: 18),
-      onTap: () {},
+    return Container(
+      color: tileColor,
+      child: ListTile(
+        title: Text(title, style: TextStyle(color: textColor)),
+        leading: Icon(icon, color: textColor),
+        trailing: trailing ??
+            Icon(CupertinoIcons.forward, size: 18, color: textColor),
+        onTap: () {},
+      ),
     );
   }
 }
@@ -128,9 +124,12 @@ class _CustomListTile extends StatelessWidget {
 class _SingleSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
+  final Color textColor;
+
   const _SingleSection({
     required this.title,
     required this.children,
+    required this.textColor,
   });
 
   @override
@@ -147,12 +146,11 @@ class _SingleSection extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .headlineSmall
-                ?.copyWith(fontSize: 16),
+                ?.copyWith(fontSize: 16, color: textColor),
           ),
         ),
         Container(
           width: double.infinity,
-          color: Colors.white,
           child: Column(
             children: children,
           ),

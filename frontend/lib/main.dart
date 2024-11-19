@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:onboarding/onboarding_page.dart'; // Onboarding page import
-import 'login_page.dart'; // Login page import
-import 'home_page.dart'; // Home page import
-import 'signup_page.dart'; // Signup page import
-import 'settings.dart'; // Settings page import
-import 'waiting_page.dart'; // Waiting page import
-import 'history.dart';
-import 'profile.dart';
-import 'otp.dart';
-import 'package:navigation_history_observer/navigation_history_observer.dart'; // Import NavigationHistoryObserver
+import 'package:provider/provider.dart'; // For ThemeProvider
+import 'theme_provider.dart'; // Theme management
+import 'settings.dart'; // Settings page
+import 'history.dart'; // History page
+import 'home_page.dart'; // Home page
+import 'login_page.dart'; // Login page
+import 'signup_page.dart'; // Signup page
+import 'onboarding_page.dart'; // Onboarding page
+import 'otp.dart'; // OTP verification page
+import 'waiting_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,43 +24,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Global Key for Navigator
-    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      key: const ValueKey("MaterialApp"), // Avoid reinitialization
       title: 'GariScan',
       theme: ThemeData(
         primarySwatch: Colors.purple,
+        brightness: themeProvider.isDarkMode ? Brightness.dark : Brightness.light,
       ),
       debugShowCheckedModeBanner: false,
-
-      // Add NavigationHistoryObserver for tracking navigation events
-      navigatorObservers: [NavigationHistoryObserver()],
-      navigatorKey: navigatorKey,
-
-      // Set initial route based on history or default to onboarding
-      initialRoute: NavigationHistoryObserver().history.isEmpty
-          ? '/onboarding'
-          : NavigationHistoryObserver().top?.settings.name,
-
-      // Define app routes
+      initialRoute: '/onboarding',
       routes: {
         '/onboarding': (context) => const OnboardingWrapper(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => SignupPage(),
+        '/otp': (context) => OTPVerificationPage(email: ''),
         '/home': (context) => const HomePage(),
         '/settings': (context) => const SettingsPage(),
-        '/profile': (context) => const Profilepic(),
-        '/waiting_page': (context) =>  GariscanApp(),
-        '/history': (context) =>  HistoryPageApp(),
-        '/otp': (context) => OTPVerificationPage(email: '',),
+        '/history': (context) => HistoryPageApp(),
+        '/waiting_page':(context) =>GariscanApp(),
       },
     );
   }
 }
 
-// Wrapper for Onboarding Page to simplify MaterialApp configuration
 class OnboardingWrapper extends StatelessWidget {
   const OnboardingWrapper({super.key});
 
@@ -65,25 +57,25 @@ class OnboardingWrapper extends StatelessWidget {
       pages: [
         OnboardingPageModel(
           title: 'Welcome to GariScan',
-          description: 'Your go-to app for fast vehicle damage scan and repair estimates.',
+          description: 'Your go-to app for vehicle damage scanning.',
           image: 'assets/image0.png',
           bgColor: Colors.purple,
         ),
         OnboardingPageModel(
-          title: 'Analyze your vehicle ANYWHERE, ANYTIME',
-          description: 'Upload an image of your vehicle, we\'ll assess it in minutes.',
+          title: 'Analyze Anywhere',
+          description: 'Upload an image and assess it in minutes.',
           image: 'assets/image3.png',
           bgColor: Colors.purple,
         ),
         OnboardingPageModel(
-          title: 'Get COST estimates',
-          description: 'Find how much it costs to repair your damage.',
+          title: 'Cost Estimates',
+          description: 'Find out repair costs in a few clicks.',
           image: 'assets/money.gif',
           bgColor: Colors.purple,
         ),
         OnboardingPageModel(
-          title: 'Fish your History',
-          description: 'Keep a record of all your vehicle assessments for future reference.',
+          title: 'Track Your History',
+          description: 'Keep records of your assessments.',
           image: 'assets/image1.png',
           bgColor: Colors.purple,
         ),
