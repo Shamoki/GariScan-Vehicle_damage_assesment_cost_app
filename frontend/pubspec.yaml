@@ -39,3 +39,5 @@ flutter:
     - assets/animations/analysing.json
     - assets/animations/inspect.json
     - assets/animations/upload.json
+    - assets/animations/loading.json
+    - assets/animations/done.json

@@ -15,7 +15,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.purple,
+        backgroundColor: isDarkMode ? Colors.grey[900] : const Color.fromARGB(255, 255, 255, 255),
       ),
       backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: Center(

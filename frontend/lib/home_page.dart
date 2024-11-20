@@ -77,6 +77,7 @@ class _HomePageState extends State<HomePage> {
 
 }
 
+
 class UploadButtonPage extends StatefulWidget {
   const UploadButtonPage({super.key});
 
@@ -84,32 +85,11 @@ class UploadButtonPage extends StatefulWidget {
   UploadButtonPageState createState() => UploadButtonPageState();
 }
 
-class UploadButtonPageState extends State<UploadButtonPage>
-    with SingleTickerProviderStateMixin {
+class UploadButtonPageState extends State<UploadButtonPage> {
   bool _isUploading = false;
+  bool _isUploadComplete = false; // Track if upload is complete
   Uint8List? _selectedFileBytes;
   String? _selectedFilePath;
-  late AnimationController _controller;
-  // ignore: unused_field
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 1.0, end: 1.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   Future<void> _pickFromGallery() async {
     try {
@@ -164,6 +144,9 @@ class UploadButtonPageState extends State<UploadButtonPage>
       var response = await request.send();
 
       if (response.statusCode == 201) {
+        setState(() {
+          _isUploadComplete = true;
+        });
         _showUploadResult(true);
       } else {
         var errorMsg = await response.stream.bytesToString();
@@ -177,41 +160,15 @@ class UploadButtonPageState extends State<UploadButtonPage>
         _selectedFileBytes = null;
       });
     }
-    
   }
 
-  
   void _showUploadResult(bool success) {
-  final message = success ? "Upload Successful" : "Upload Failed";
-
-  // Show the result dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: Text(message),
-        content: const Text("Your image is being processed."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop(); // Close dialog manually if OK is pressed
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      );
-    },
-  );
-
-  // Navigate to the waiting page immediately, even if the dialog is still open
-  if (success) {
-    Future.delayed(Duration.zero, () {
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/waiting_page');
-    });
+    if (success) {
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pushReplacementNamed(context, '/waiting_page');
+      });
+    }
   }
-}
-
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -219,41 +176,50 @@ class UploadButtonPageState extends State<UploadButtonPage>
     );
   }
 
-
   @override
-Widget build(BuildContext context) {
-  return Center(
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        GestureDetector(
-          onTap: _pickFromGallery, // Trigger file picker
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Lottie.asset(
-                'animations/upload.json', 
-                height: 200,
-                repeat: true,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Tap to Analyse',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 243, 5, 191),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onTap: _isUploading || _isUploadComplete
+                ? null
+                : _pickFromGallery, // Prevent new upload during current upload or completion
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _isUploadComplete
+                    ? Lottie.asset(
+                        'animations/done.json', 
+                        height: 200,
+                        repeat: false,
+                      )
+                    : Lottie.asset(
+                        'animations/upload.json', 
+                        height: 200,
+                        repeat: true,
+                      ),
+                const SizedBox(height: 20),
+                Text(
+                  _isUploading
+                      ? 'Uploading...'
+                      : _isUploadComplete
+                          ? 'Upload Complete'
+                          : 'Tap to Analyse',
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 243, 5, 191),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        if (_isUploading) const CircularProgressIndicator(),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 }
 
 class ProfilePage extends StatelessWidget {
