@@ -6,7 +6,7 @@ import 'package:lottie/lottie.dart'; // Import Lottie
 class OTPVerificationPage extends StatefulWidget {
   final String email;
 
-  OTPVerificationPage({required this.email, super.key});
+  const OTPVerificationPage({required this.email, super.key});
 
   @override
   _OTPVerificationPageState createState() => _OTPVerificationPageState();

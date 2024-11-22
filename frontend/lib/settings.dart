@@ -149,7 +149,7 @@ class _SingleSection extends StatelessWidget {
                 ?.copyWith(fontSize: 16, color: textColor),
           ),
         ),
-        Container(
+        SizedBox(
           width: double.infinity,
           child: Column(
             children: children,

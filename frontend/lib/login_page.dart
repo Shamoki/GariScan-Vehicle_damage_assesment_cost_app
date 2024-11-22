@@ -17,62 +17,74 @@ class _LoginPageState extends State<LoginPage> {
 
   // Function to send a POST request to the backend login API
   Future<void> login(BuildContext context, String email, String password) async {
-    var url = Uri.parse('http://localhost:5000/api/auth/login');
-    setState(() {
-      _isLoading = true; // Show loading spinner
-    });
+  var url = Uri.parse('http://localhost:5000/api/auth/login');
+  setState(() {
+    _isLoading = true; // Show loading spinner
+  });
 
-    try {
-      if (email.isEmpty || password.isEmpty) {
-        _showErrorDialog(context, 'Login failed', 'Email and Password are required.');
-        return;
-      }
-
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-        _showErrorDialog(context, 'Login failed', 'Please enter a valid email address.');
-        return;
-      }
-
-      var response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        var responseData = jsonDecode(response.body);
-        var userId = responseData['userId'];
-        var token = responseData['token'];
-
-        // Store token and userId in SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userId', userId);
-        await prefs.setString('token', token);
-
-        // Clear input fields
-        emailController.clear();
-        passwordController.clear();
-
-        // Navigate to home page with userId
-        Navigator.pushReplacementNamed(context, '/home', arguments: userId);
-      } else {
-        // Display error message
-        var errorMsg = jsonDecode(response.body)['msg'] ?? 'Login failed';
-        _showErrorDialog(context, 'Login failed', errorMsg);
-      }
-    } catch (e) {
-      _showErrorDialog(context, 'Login failed', 'An error occurred during login. $e');
-    } finally {
-      setState(() {
-        _isLoading = false; // Hide loading spinner
-      });
+  try {
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog(context, 'Login failed', 'Email and Password are required.');
+      return;
     }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      _showErrorDialog(context, 'Login failed', 'Please enter a valid email address.');
+      return;
+    }
+
+    var response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      var responseData = jsonDecode(response.body);
+      var userId = responseData['userId'];
+      var token = responseData['token'];
+      var username = responseData['user']['username'];
+      var email = responseData['user']['email'];
+
+      // Store token, userId, username, and email in SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', userId);
+      await prefs.setString('token', token);
+      await prefs.setString('username', username); // Save username
+      await prefs.setString('email', email);       // Save email
+
+      // Debugging to confirm data storage
+      print('Login Successful');
+      print('UserId: $userId');
+      print('Token: $token');
+      print('Username: $username');
+      print('Email: $email');
+
+      // Clear input fields
+      emailController.clear();
+      passwordController.clear();
+
+      // Navigate to home page with userId
+      Navigator.pushReplacementNamed(context, '/home', arguments: userId);
+    } else {
+      // Display error message
+      var errorMsg = jsonDecode(response.body)['msg'] ?? 'Login failed';
+      _showErrorDialog(context, 'Login failed', errorMsg);
+    }
+  } catch (e) {
+    _showErrorDialog(context, 'Login failed', 'An error occurred during login. $e');
+  } finally {
+    setState(() {
+      _isLoading = false; // Hide loading spinner
+    });
   }
+}
+
 
   // Function to display an error dialog
   void _showErrorDialog(BuildContext context, String title, String message) {
@@ -177,8 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "Login",
-                          style: TextStyle(fontSize: 18, color:Colors.white),
-                          
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                 ),
               ),

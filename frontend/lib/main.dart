@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onboarding/prof.dart';
 import 'package:provider/provider.dart'; // For ThemeProvider
 import 'theme_provider.dart'; // Theme management
 import 'settings.dart'; // Settings page
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/settings': (context) => const SettingsPage(),
         '/history': (context) => HistoryPageApp(),
         '/waiting_page':(context) =>GariscanApp(),
+        '/profile':(context)=>ProfPage(),
       },
     );
   }

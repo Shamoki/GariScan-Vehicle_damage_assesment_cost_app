@@ -108,12 +108,13 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       token,
       userId: user.id,
-      user: { username: user.username, email: user.email },
+      user: { username: user.username, email: user.email }, // Ensure these fields are populated
     });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ msg: 'Server error. Please try again later.' });
   }
 });
+
 
 module.exports = router;

@@ -1,82 +1,47 @@
-const express = require("express");
-const multer = require("multer");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const Image = require("../models/Image");
-
+const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const Pic = require('../models/pics'); // Assuming you have a Pic model
 
-// Use CORS for all routes
-router.use(cors());
-
-// Multer setup: Store files in memory temporarily
+// Configure multer to store the file in memory as a Buffer
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-// POST /upload - Upload a profile picture
-router.post("/upload", upload.single("file"), async (req, res) => {
+// Route to upload a profile picture
+router.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    const { userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ msg: "User ID is required" });
-    }
-
     if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded" });
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Save the image metadata and binary data
-    const newImage = new Image({
-      filename: req.file.originalname,
+    const newPic = new Pic({
+      userId: req.user.id, // Assuming you have user authentication and req.user.id holds the user's ID
+      imageData: req.file.buffer, // Store the image data as a Buffer
       contentType: req.file.mimetype,
-      data: req.file.buffer,
-      userId: mongoose.Types.ObjectId(userId),
     });
 
-    await newImage.save();
-
-    res.status(201).json({ msg: "Profile photo uploaded successfully", imageId: newImage._id });
-  } catch (err) {
-    console.error("Upload error:", err.message);
-    res.status(500).send("Server error");
+    await newPic.save();
+    res.status(201).json({ message: 'Profile picture uploaded successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
   }
 });
 
-// GET /photo/:id - Retrieve an image by its ID
-router.get("/photo/:id", async (req, res) => {
+// Route to get the profile picture
+router.get('/photo', async (req, res) => {
   try {
-    const image = await Image.findById(req.params.id);
+    const pic = await Pic.findOne({ userId: req.user.id }); // Fetch the picture for the logged-in user
 
-    if (!image) {
-      return res.status(404).json({ msg: "Image not found" });
+    if (!pic) {
+      return res.status(404).json({ error: 'Profile picture not found' });
     }
 
-    // Set headers for the image response
-    res.set("Content-Type", image.contentType);
-    res.send(image.data);
-  } catch (err) {
-    console.error("Retrieval error:", err.message);
-    res.status(500).send("Server error");
-  }
-});
-
-// GET /user/:userId - Retrieve the latest profile photo for a user
-router.get("/user/:userId", async (req, res) => {
-  try {
-    const image = await Image.findOne({ userId: req.params.userId })
-      .sort({ createdAt: -1 }); // Get the latest image
-
-    if (!image) {
-      return res.status(404).json({ msg: "No profile photo found for this user" });
-    }
-
-    // Set headers for the image response
-    res.set("Content-Type", image.contentType);
-    res.send(image.data);
-  } catch (err) {
-    console.error("User image retrieval error:", err.message);
-    res.status(500).send("Server error");
+    res.set('Content-Type', pic.contentType);
+    res.send(pic.imageData); // Send the Buffer directly
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve profile picture' });
   }
 });
 

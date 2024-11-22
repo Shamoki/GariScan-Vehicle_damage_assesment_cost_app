@@ -6,7 +6,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 import 'history.dart';
-import 'profile.dart';
+import 'prof.dart';
 
 
 
@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const UploadButtonPage(),
      HistoryPageApp(),
-     Profilepic(),
+     ProfPage(),
   ];
 
   @override
@@ -222,19 +222,6 @@ class UploadButtonPageState extends State<UploadButtonPage> {
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "Profile Page",
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
 
 class ProfilePopupMenu extends StatelessWidget {
   const ProfilePopupMenu({super.key});
