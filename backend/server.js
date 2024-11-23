@@ -3,8 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/auth'); // Authentication routes
-const uploadRoutes = require('./routes/upload'); // Upload routes
-
+const uploadRoutes = require('./routes/upload'); // Upload 
+const profileRoutes= require('./routes/profile');//profile photo
 const app = express();
 
 // Enable CORS
@@ -33,8 +33,9 @@ mongoose.connection.on('connected', () => console.log('Mongoose connected to Mon
 mongoose.connection.on('error', (error) => console.error('Mongoose connection error:', error));
 
 // Define routes
-app.use('/api/auth', authRoutes); // Authentication routes
-app.use('/api/upload', uploadRoutes); // Upload routes
+app.use('/api/auth', authRoutes); // Authentication 
+app.use('/api/upload', uploadRoutes); // Uploadin image -ca
+app.use('/api/profile', profileRoutes);//profile pic
 
 // Start the server
 const PORT = process.env.PORT || 5000;

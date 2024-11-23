@@ -55,8 +55,8 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', userId);
       await prefs.setString('token', token);
-      await prefs.setString('username', username); // Save username
-      await prefs.setString('email', email);       // Save email
+      await prefs.setString('username', username); 
+      await prefs.setString('email', email);       
 
       // Debugging to confirm data storage
       print('Login Successful');

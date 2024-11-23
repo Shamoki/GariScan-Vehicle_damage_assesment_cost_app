@@ -26,31 +26,29 @@ class _ProfPageState extends State<ProfPage> {
   }
 
   Future<void> _initializeProfile() async {
-  try {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? storedUsername = prefs.getString('username');
-    String? storedEmail = prefs.getString('email');
-    
-    if (storedUsername != null && storedEmail != null) {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? storedUsername = prefs.getString('username');
+      String? storedEmail = prefs.getString('email');
+
+      if (storedUsername != null && storedEmail != null) {
+        setState(() {
+          _username = storedUsername;
+          _email = storedEmail;
+        });
+      } else {
+        await _fetchUserDataFromBackend();
+      }
+      await _loadProfilePhoto();
+    } catch (e) {
+      _showSnackbar('Error initializing profile: $e');
+    } finally {
       setState(() {
-        _username = storedUsername;
-        _email = storedEmail;
+        _isLoading = false;
       });
-    } else {
-      await _fetchUserDataFromBackend();
     }
-    await _loadProfilePhoto();
-  } catch (e) {
-    _showSnackbar('Error initializing profile: $e');
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
 
-
-  // Fetch user data (username and email) from API
   Future<void> _fetchUserDataFromBackend() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,7 +87,6 @@ class _ProfPageState extends State<ProfPage> {
     }
   }
 
-  // Load profile photo from API
   Future<void> _loadProfilePhoto() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -118,7 +115,6 @@ class _ProfPageState extends State<ProfPage> {
     }
   }
 
-  // Upload new profile photo
   Future<void> _uploadProfilePhoto() async {
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -252,22 +248,22 @@ class _ProfPageState extends State<ProfPage> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    if (_isUploading)
-                      const CircularProgressIndicator()
-                    else
-                      ElevatedButton.icon(
-                        onPressed: _uploadProfilePhoto,
-                        icon: const Icon(Icons.upload),
-                        label: const Text('Upload New Photo'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                    // Back to Home Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      },
+                      icon: const Icon(Icons.home),
+                      label: const Text('Back to Home'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
